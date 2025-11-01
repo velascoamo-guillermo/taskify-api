@@ -1,4 +1,5 @@
 import { UserRepository } from "../repositories/user.repository";
+import type { LoginInput, RegisterInput } from "../schemas/auth.schema";
 import { comparePassword, hashPassword } from "../utils/hash";
 import {
   generateAccessToken,
@@ -8,14 +9,8 @@ import {
 
 const userRepo = new UserRepository();
 
-interface RegisterDTO {
-  email: string;
-  password: string;
-  name?: string;
-}
-
 export class AuthService {
-  async register({ password, email, name }: RegisterDTO) {
+  async register({ password, email, name }: RegisterInput) {
     const exists = await userRepo.findByEmail(email);
     if (exists) {
       throw new Error("User already exists");
@@ -36,13 +31,7 @@ export class AuthService {
     };
   }
 
-  async login({
-    email,
-    password,
-  }: {
-    email: RegisterDTO["email"];
-    password: RegisterDTO["password"];
-  }) {
+  async login({ email, password }: LoginInput) {
     const user = await userRepo.findByEmail(email);
 
     if (!user) {
