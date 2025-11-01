@@ -3,8 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { errorHandler } from "./middlewares/errorHandler";
 import { authRouter } from "./routes/auth.routes";
-// import { authRouter } from "./modules/auth/auth.routes";
-// import { errorHandler } from "./middlewares/errorHandler";
+import rateLimit from "express-rate-limit";
 
 dotenv.config();
 const app = express();
@@ -12,6 +11,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.disable("x-powered-by");
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 min
+    limit: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+  })
+);
 
 // Health check
 app.get("/health", (_, res) =>

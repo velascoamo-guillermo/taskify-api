@@ -15,20 +15,21 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  projects  Project[]
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  name         String?
+  refreshToken String?
+  projects     Project[]
+  createdAt    DateTime @default(now())
 }
 
 model Project {
-  id        String   @id @default(cuid())
-  title     String
+  id          String   @id @default(cuid())
+  title       String
   description String?
-  ownerId   String
-  owner     User     @relation(fields: [ownerId], references: [id])
-  createdAt DateTime @default(now())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime @default(now())
 }
 

@@ -1,5 +1,5 @@
 import { prisma } from "../../prisma/db.js";
-import type { User } from "../../generated/prisma/client";
+import type { User } from "../../generated/prisma/client.js";
 
 interface CreateUserDTO {
   email: string;
@@ -14,5 +14,13 @@ export class UserRepository {
 
   async create(data: CreateUserDTO): Promise<User> {
     return prisma.user.create({ data });
+  }
+
+  async updateRefreshToken(id: string, refreshToken: string) {
+    return prisma.user.update({ where: { id }, data: { refreshToken } });
+  }
+
+  async findById(id: string): Promise<User | null> {
+    return prisma.user.findUnique({ where: { id } });
   }
 }

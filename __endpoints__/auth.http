@@ -1,18 +1,26 @@
-# POST http://localhost:1234/auth/register
-# Content-Type: application/json
+### Register
+POST http://localhost:1234/auth/register
+Content-Type: application/json
 
-# {
-#   "email": "user@example.com",
-#   "password": "password123",
-#   "name": "John Doe"
-# }
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "John Doe"
+}
 
-###
-
+### Login
 POST http://localhost:1234/auth/login
 Content-Type: application/json
 
 {
   "email": "user@example.com",
   "password": "password123"
+}
+
+### Refresh Token
+POST http://localhost:1234/auth/refresh
+Content-Type: application/json
+
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtaDd1ZWYxajAwMDA4OHdiYm9zbHBueTgiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjIwMTQyNTUsImV4cCI6MTc2MjYxOTA1NX0.-Bz6Ne6wBrw6GlbTFL7wZO_FOzGUxxfhJQ_VBUwf1dU"
 }

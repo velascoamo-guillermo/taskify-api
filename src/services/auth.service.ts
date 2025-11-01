@@ -1,5 +1,10 @@
-import { UserRepository } from "../repositories/auth.repository";
+import { UserRepository } from "../repositories/user.repository";
 import { comparePassword, hashPassword } from "../utils/hash";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../utils/jwt";
 
 const userRepo = new UserRepository();
 
@@ -50,11 +55,42 @@ export class AuthService {
       throw new Error("Invalid credentials");
     }
 
-    return {
+    const accessToken = generateAccessToken({ id: user.id, email: user.email });
+    const refreshToken = generateRefreshToken({
       id: user.id,
       email: user.email,
-      name: user.name,
-      createdAt: user.createdAt,
+    });
+
+    await userRepo.updateRefreshToken(user.id, refreshToken);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async refresh({ token }: { token: string }) {
+    const decode = verifyRefreshToken(token);
+    const user = await userRepo.findById(decode.id);
+
+    if (!user || user.refreshToken !== token) {
+      throw new Error("Invalid refresh token");
+    }
+
+    const newAccessToken = generateAccessToken({
+      id: user.id,
+      email: user.email,
+    });
+    const newRefreshToken = generateRefreshToken({
+      id: user.id,
+      email: user.email,
+    });
+
+    await userRepo.updateRefreshToken(user.id, newRefreshToken);
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
     };
   }
 }
