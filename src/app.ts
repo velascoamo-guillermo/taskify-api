@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { errorHandler } from "./middlewares/errorHandler";
+import { authRouter } from "./routes/auth.routes";
 // import { authRouter } from "./modules/auth/auth.routes";
 // import { errorHandler } from "./middlewares/errorHandler";
 
@@ -18,7 +19,7 @@ app.get("/health", (_, res) =>
 );
 
 // Routes
-// app.use("/auth", authRouter);
+app.use("/auth", authRouter);
 
 // Error handling
 app.use(errorHandler);
