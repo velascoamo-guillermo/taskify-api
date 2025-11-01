@@ -4,10 +4,13 @@ import dotenv from "dotenv";
 import { errorHandler } from "./middlewares/errorHandler";
 import { authRouter } from "./routes/auth.routes";
 import rateLimit from "express-rate-limit";
+import { requestLogger } from "./middlewares/requestLogger";
+import helmet from "helmet";
 
 dotenv.config();
 const app = express();
 
+app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.disable("x-powered-by");
@@ -19,6 +22,8 @@ app.use(
     legacyHeaders: false,
   })
 );
+
+app.use(requestLogger);
 
 // Health check
 app.get("/health", (_, res) =>
