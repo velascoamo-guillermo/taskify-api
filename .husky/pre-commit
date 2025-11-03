@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# TypeScript type checking
+echo "🔍 Checking TypeScript types..."
+bunx tsc --noEmit
+
+# Run tests
+echo "🧪 Running tests..."
+bun test
