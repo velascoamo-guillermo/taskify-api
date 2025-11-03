@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:13
+    container_name: taskify_postgres
+    environment:
+      POSTGRES_USER: taskify_user
+      POSTGRES_PASSWORD: taskify_password
+      POSTGRES_DB: taskify_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  postgres_test:
+    image: postgres:13
+    container_name: taskify_postgres_test
+    environment:
+      POSTGRES_USER: taskify_user
+      POSTGRES_PASSWORD: taskify_password
+      POSTGRES_DB: taskify_test_db
+    ports:
+      - "5433:5432" # Puerto diferente
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  pgdata_test:

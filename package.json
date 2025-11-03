@@ -8,6 +8,10 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
+    "test:setup": "docker-compose up postgres_test -d && sleep 3 && dotenv -e .env.test -- bunx prisma migrate deploy && dotenv -e .env.test -- bunx prisma generate",
+    "test:teardown": "docker-compose stop postgres_test",
+    "studio": "bunx prisma studio",
+    "studio:test": "dotenv -e .env.test -- bunx prisma studio",
     "build": "bun build src/server.ts --outdir ./dist",
     "start": "NODE_ENV=production bun dist/server.js",
     "prepare": "husky"
@@ -22,6 +26,7 @@
     "@types/supertest": "^6.0.3",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "dotenv-cli": "^11.0.0",
     "husky": "^9.1.7",
     "prisma": "^6.18.0",
     "supertest": "^7.1.4",

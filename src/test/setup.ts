@@ -1,5 +1,9 @@
 import { beforeAll, afterAll, beforeEach } from "vitest";
+import { config } from "dotenv";
 import { prisma } from "../../prisma/db.ts";
+
+// Load test environment variables
+config({ path: ".env.test" });
 
 // Setup test database
 beforeAll(async () => {
