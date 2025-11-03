@@ -1,5 +1,5 @@
-import { prisma } from "../../prisma/db.js";
-import type { User } from "../../generated/prisma/client.js";
+import { prisma } from "../../prisma/db.ts";
+import type { User } from "../../generated/prisma/client.ts";
 
 interface CreateUserDTO {
   email: string;

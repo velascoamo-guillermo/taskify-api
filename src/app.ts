@@ -6,11 +6,19 @@ import { authRouter } from "./routes/auth.routes";
 import rateLimit from "express-rate-limit";
 import { requestLogger } from "./middlewares/requestLogger";
 import helmet from "helmet";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger.js";
 
 dotenv.config();
 const app = express();
 
-app.use(helmet());
+// Configure Helmet with Swagger-friendly settings
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Disable CSP for Swagger to work
+    crossOriginEmbedderPolicy: false,
+  })
+);
 app.use(cors());
 app.use(express.json());
 app.disable("x-powered-by");
@@ -25,7 +33,17 @@ app.use(
 
 app.use(requestLogger);
 
-// Health check
+// Swagger documentation
+app.use("/api-docs", swaggerUi.serve);
+app.get(
+  "/api-docs",
+  swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Taskify API Documentation",
+  })
+);
+
 app.get("/health", (_, res) =>
   res.json({ status: "ok", message: "Taskify API running" })
 );
