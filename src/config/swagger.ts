@@ -157,6 +157,77 @@ const options = {
             },
           },
         },
+        Project: {
+          type: "object",
+          properties: {
+            id: {
+              type: "string",
+              description: "Unique project identifier",
+              example: "clp789def012",
+            },
+            title: {
+              type: "string",
+              description: "Project title",
+              example: "My New Project",
+            },
+            description: {
+              type: "string",
+              nullable: true,
+              description: "Project description",
+              example: "A detailed description of the project",
+            },
+            ownerId: {
+              type: "string",
+              description: "Project owner ID",
+              example: "clp123abc456",
+            },
+            createdAt: {
+              type: "string",
+              format: "date-time",
+              description: "Project creation timestamp",
+              example: "2024-01-01T00:00:00.000Z",
+            },
+            updatedAt: {
+              type: "string",
+              format: "date-time",
+              description: "Project last update timestamp",
+              example: "2024-01-01T00:00:00.000Z",
+            },
+          },
+        },
+        CreateProjectRequest: {
+          type: "object",
+          required: ["title"],
+          properties: {
+            title: {
+              type: "string",
+              minLength: 1,
+              description: "Project title",
+              example: "My New Project",
+            },
+            description: {
+              type: "string",
+              description: "Project description (optional)",
+              example: "A detailed description of the project",
+            },
+          },
+        },
+        UpdateProjectRequest: {
+          type: "object",
+          properties: {
+            title: {
+              type: "string",
+              minLength: 1,
+              description: "Project title",
+              example: "Updated Project Title",
+            },
+            description: {
+              type: "string",
+              description: "Project description",
+              example: "Updated project description",
+            },
+          },
+        },
         HealthResponse: {
           type: "object",
           properties: {
