@@ -14,7 +14,8 @@ export function ensureAuth(req: Request, res: Response, next: NextFunction) {
       return res.status(403).json({ error: "Invalid or expired token" });
     }
     const decoded = verifyAccessToken(token);
-    (req as any).user = decoded;
+    req.user = decoded;
+    next();
   } catch (error) {
     return res.status(403).json({ error: "Invalid or expired token" });
   }

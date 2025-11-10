@@ -23,4 +23,8 @@ export class UserRepository {
   async findById(id: string): Promise<User | null> {
     return prisma.user.findUnique({ where: { id } });
   }
+
+  async delete(id: string): Promise<User> {
+    return prisma.user.delete({ where: { id } });
+  }
 }

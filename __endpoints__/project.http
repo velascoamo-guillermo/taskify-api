@@ -1,0 +1,26 @@
+### Login to get token
+POST http://localhost:1234/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+### Create Project (use token from login response)
+POST http://localhost:1234/projects
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtaGpoM3k5aDAwMDA1YzAycHNvcGlxZ2IiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjI3NzczODksImV4cCI6MTc2Mjc3ODI4OX0.m9G3Az01Gz4tWeAu86ibixeMQ-ospGGJNCtlUIRfYy4
+
+{
+  "title": "New Project 2 ",
+  "description": "Project description 2"
+}
+
+### Delete Project (use token from login response)
+DELETE http://localhost:1234/projects/cmhjhlaiy00015cfdztv6uz5c
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtaGpoM3k5aDAwMDA1YzAycHNvcGlxZ2IiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjI3NzY0MTQsImV4cCI6MTc2Mjc3NzMxNH0.0bFsg7HFh5coY95Au2vhClHu0jCc7LMO3c7yfD35-s4
+
+### Get Projects by owner id 
+GET http://localhost:1234/projects
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtaGpoM3k5aDAwMDA1YzAycHNvcGlxZ2IiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjI3NzY0MTQsImV4cCI6MTc2Mjc3NzMxNH0.0bFsg7HFh5coY95Au2vhClHu0jCc7LMO3c7yfD35-s4

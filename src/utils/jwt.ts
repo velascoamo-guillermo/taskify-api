@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import type { SignOptions } from "jsonwebtoken";
 import { env } from "../config/env.ts";
 
-interface JwtPayload {
+export interface JwtPayload {
   id: string;
   email: string;
 }
@@ -10,6 +10,7 @@ interface JwtPayload {
 export function generateAccessToken(payload: JwtPayload): string {
   const options: SignOptions = {
     expiresIn: (env.JWT_ACCESS_EXPIRES || "15m") as any,
+    jwtid: `access_${Date.now()}_${Math.random()}`,
   };
   return jwt.sign(payload, env.JWT_SECRET, options);
 }
@@ -17,6 +18,7 @@ export function generateAccessToken(payload: JwtPayload): string {
 export function generateRefreshToken(payload: JwtPayload): string {
   const options: SignOptions = {
     expiresIn: (env.JWT_REFRESH_EXPIRES || "7d") as any,
+    jwtid: `refresh_${Date.now()}_${Math.random()}`,
   };
   return jwt.sign(payload, env.JWT_REFRESH_SECRET, options);
 }

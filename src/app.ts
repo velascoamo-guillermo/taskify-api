@@ -8,6 +8,8 @@ import { requestLogger } from "./middlewares/requestLogger";
 import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
+import { projectRouter } from "./routes/project.routes.js";
+import { ensureAuth } from "./middlewares/ensureAuth.js";
 
 dotenv.config();
 const app = express();
@@ -50,6 +52,7 @@ app.get("/health", (_, res) =>
 
 // Routes
 app.use("/auth", authRouter);
+app.use("/projects", ensureAuth, projectRouter);
 
 // Error handling
 app.use(errorHandler);

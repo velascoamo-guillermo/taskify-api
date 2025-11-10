@@ -36,7 +36,7 @@ const authController = new AuthController();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-authRouter.post("/register", authController.register);
+authRouter.post("/register", authController.register.bind(authController));
 
 /**
  * @swagger
@@ -70,7 +70,7 @@ authRouter.post("/register", authController.register);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-authRouter.post("/login", authController.login);
+authRouter.post("/login", authController.login.bind(authController));
 
 /**
  * @swagger
@@ -98,4 +98,4 @@ authRouter.post("/login", authController.login);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-authRouter.post("/refresh", authController.refresh);
+authRouter.post("/refresh", authController.refresh.bind(authController));
