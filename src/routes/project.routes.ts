@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { ProjectController } from "../controllers/project.controller";
+import { cache, invalidateCache } from "../middlewares/cache.js";
 
 export const projectRouter = Router();
 const projectController = new ProjectController();
@@ -40,6 +41,7 @@ const projectController = new ProjectController();
  */
 projectRouter.post(
   "/",
+  invalidateCache("api:/projects*"),
   projectController.createProject.bind(projectController)
 );
 
@@ -82,6 +84,7 @@ projectRouter.post(
  */
 projectRouter.delete(
   "/:id",
+  invalidateCache("api:*projects*"),
   projectController.deleteProject.bind(projectController)
 );
 
@@ -111,6 +114,7 @@ projectRouter.delete(
  */
 projectRouter.get(
   "/",
+  cache({ ttl: 300, keyPrefix: "projects" }), // Cache for 5 minutes
   projectController.getProjectsByOwner.bind(projectController)
 );
 
@@ -157,6 +161,7 @@ projectRouter.get(
  */
 projectRouter.get(
   "/:id",
+  cache({ ttl: 600, keyPrefix: "project" }), // Cache for 10 minutes
   projectController.getProjectById.bind(projectController)
 );
 
@@ -209,5 +214,6 @@ projectRouter.get(
  */
 projectRouter.put(
   "/:id",
+  invalidateCache("api:*projects*"),
   projectController.updateProject.bind(projectController)
 );

@@ -9,7 +9,10 @@ import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
 import { projectRouter } from "./routes/project.routes.js";
+import { fileRouter } from "./routes/file.routes.js";
 import { ensureAuth } from "./middlewares/ensureAuth.js";
+import { redisCache } from "./config/redis.js";
+import { cloudinaryService } from "./config/cloudinary.js";
 
 dotenv.config();
 const app = express();
@@ -36,9 +39,9 @@ app.use(
 app.use(requestLogger);
 
 // Swagger documentation
-app.use("/api-docs", swaggerUi.serve);
+app.use("/docs", swaggerUi.serve);
 app.get(
-  "/api-docs",
+  "/docs",
   swaggerUi.setup(swaggerSpec, {
     explorer: true,
     customCss: ".swagger-ui .topbar { display: none }",
@@ -47,12 +50,22 @@ app.get(
 );
 
 app.get("/health", (_, res) =>
-  res.json({ status: "ok", message: "Taskify API running" })
+  res.json({
+    status: "ok",
+    message: "Taskify API running",
+    services: {
+      redis: redisCache.isHealthy() ? "connected" : "disconnected",
+      cloudinary: cloudinaryService.isHealthy()
+        ? "configured"
+        : "not_configured",
+    },
+  })
 );
 
 // Routes
 app.use("/auth", authRouter);
 app.use("/projects", ensureAuth, projectRouter);
+app.use("/", ensureAuth, fileRouter);
 
 // Error handling
 app.use(errorHandler);

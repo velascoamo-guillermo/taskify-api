@@ -1,0 +1,41 @@
+### Login to get token
+POST http://localhost:1234/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+### Upload Files to Project
+POST http://localhost:1234/projects/cmht3r8vk000188fd6miwwfns/files
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtaGpoM3k5aDAwMDA1YzAycHNvcGlxZ2IiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjQwMDY1MjcsImV4cCI6MTc2NDAwNzQyNywianRpIjoiYWNjZXNzXzE3NjQwMDY1Mjc4MjNfMC42ODI4NjcyMTU2NTUxMzgzIn0.QgM7zyRKj-8VJ2nkIReOnKEqvZ8UkgHlsaj0_M79cb8
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="example1.pdf"
+Content-Type: application/pdf
+
+< ./path/to/your/file1.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="example2.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/your/file2.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Get All Files for a Project
+GET http://localhost:1234/projects/cmht3r8vk000188fd6miwwfns/files
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtaGpoM3k5aDAwMDA1YzAycHNvcGlxZ2IiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjQwMDY1MjcsImV4cCI6MTc2NDAwNzQyNywianRpIjoiYWNjZXNzXzE3NjQwMDY1Mjc4MjNfMC42ODI4NjcyMTU2NTUxMzgzIn0.QgM7zyRKj-8VJ2nkIReOnKEqvZ8UkgHlsaj0_M79cb8
+
+### Get Specific File by ID
+GET http://localhost:1234/files/cmidg67bo000788f03rhu47rs
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtaGpoM3k5aDAwMDA1YzAycHNvcGlxZ2IiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjQwMDY1MjcsImV4cCI6MTc2NDAwNzQyNywianRpIjoiYWNjZXNzXzE3NjQwMDY1Mjc4MjNfMC42ODI4NjcyMTU2NTUxMzgzIn0.QgM7zyRKj-8VJ2nkIReOnKEqvZ8UkgHlsaj0_M79cb8
+
+### Delete File
+DELETE http://localhost:1234/files/cmidg67bo000788f03rhu47rs
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtaGpoM3k5aDAwMDA1YzAycHNvcGlxZ2IiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjQwMDY1MjcsImV4cCI6MTc2NDAwNzQyNywianRpIjoiYWNjZXNzXzE3NjQwMDY1Mjc4MjNfMC42ODI4NjcyMTU2NTUxMzgzIn0.QgM7zyRKj-8VJ2nkIReOnKEqvZ8UkgHlsaj0_M79cb8
+
+### Get User File Statistics
+GET http://localhost:1234/files/stats
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtaGpoM3k5aDAwMDA1YzAycHNvcGlxZ2IiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjQwMDY1MjcsImV4cCI6MTc2NDAwNzQyNywianRpIjoiYWNjZXNzXzE3NjQwMDY1Mjc4MjNfMC42ODI4NjcyMTU2NTUxMzgzIn0.QgM7zyRKj-8VJ2nkIReOnKEqvZ8UkgHlsaj0_M79cb8

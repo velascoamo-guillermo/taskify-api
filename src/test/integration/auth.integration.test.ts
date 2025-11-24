@@ -10,6 +10,10 @@ describe("Integration Tests - Auth Routes", () => {
       expect(response.body).toEqual({
         status: "ok",
         message: "Taskify API running",
+        services: {
+          cloudinary: "configured",
+          redis: "disconnected",
+        },
       });
     });
   });

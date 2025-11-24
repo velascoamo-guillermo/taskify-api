@@ -26,6 +26,17 @@ services:
       - pgdata_test:/var/lib/postgresql/data
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    container_name: taskify_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+
 volumes:
   pgdata:
   pgdata_test:
+  redisdata:
