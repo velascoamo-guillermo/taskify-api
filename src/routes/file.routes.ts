@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { FileController } from "../controllers/file.controller.js";
-import { upload } from "../middlewares/upload.js";
-import { ensureAuth } from "../middlewares/ensureAuth.js";
 import { invalidateCache } from "../middlewares/cache.js";
+import { ensureAuth } from "../middlewares/ensureAuth.js";
+import { upload } from "../middlewares/upload.js";
 
 export const fileRouter = Router();
 const fileController = new FileController();
@@ -141,10 +141,10 @@ fileRouter.use(ensureAuth);
  *         description: Internal server error
  */
 fileRouter.post(
-  "/projects/:projectId/files",
-  invalidateCache("api:*projects*"), // Invalidate project cache
-  upload.array("files", 5), // Max 5 files
-  fileController.uploadFiles.bind(fileController)
+	"/projects/:projectId/files",
+	invalidateCache("api:*projects*"), // Invalidate project cache
+	upload.array("files", 5), // Max 5 files
+	fileController.uploadFiles.bind(fileController),
 );
 
 /**
@@ -191,8 +191,8 @@ fileRouter.post(
  *         description: Internal server error
  */
 fileRouter.get(
-  "/projects/:projectId/files",
-  fileController.getProjectFiles.bind(fileController)
+	"/projects/:projectId/files",
+	fileController.getProjectFiles.bind(fileController),
 );
 
 /**
@@ -270,9 +270,9 @@ fileRouter.get("/files/:fileId", fileController.getFile.bind(fileController));
  *         description: Internal server error
  */
 fileRouter.delete(
-  "/files/:fileId",
-  invalidateCache("api:*projects*"), // Invalidate project cache
-  fileController.deleteFile.bind(fileController)
+	"/files/:fileId",
+	invalidateCache("api:*projects*"), // Invalidate project cache
+	fileController.deleteFile.bind(fileController),
 );
 
 /**
@@ -301,6 +301,6 @@ fileRouter.delete(
  *         description: Internal server error
  */
 fileRouter.get(
-  "/files/stats",
-  fileController.getUserFileStats.bind(fileController)
+	"/files/stats",
+	fileController.getUserFileStats.bind(fileController),
 );

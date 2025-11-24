@@ -40,9 +40,9 @@ const projectController = new ProjectController();
  *               $ref: '#/components/schemas/Error'
  */
 projectRouter.post(
-  "/",
-  invalidateCache("api:/projects*"),
-  projectController.createProject.bind(projectController)
+	"/",
+	invalidateCache("api:/projects*"),
+	projectController.createProject.bind(projectController),
 );
 
 /**
@@ -83,9 +83,9 @@ projectRouter.post(
  *               $ref: '#/components/schemas/Error'
  */
 projectRouter.delete(
-  "/:id",
-  invalidateCache("api:*projects*"),
-  projectController.deleteProject.bind(projectController)
+	"/:id",
+	invalidateCache("api:*projects*"),
+	projectController.deleteProject.bind(projectController),
 );
 
 /**
@@ -113,9 +113,9 @@ projectRouter.delete(
  *               $ref: '#/components/schemas/Error'
  */
 projectRouter.get(
-  "/",
-  cache({ ttl: 300, keyPrefix: "projects" }), // Cache for 5 minutes
-  projectController.getProjectsByOwner.bind(projectController)
+	"/",
+	cache({ ttl: 300, keyPrefix: "projects" }), // Cache for 5 minutes
+	projectController.getProjectsByOwner.bind(projectController),
 );
 
 /**
@@ -160,9 +160,9 @@ projectRouter.get(
  *               $ref: '#/components/schemas/Error'
  */
 projectRouter.get(
-  "/:id",
-  cache({ ttl: 600, keyPrefix: "project" }), // Cache for 10 minutes
-  projectController.getProjectById.bind(projectController)
+	"/:id",
+	cache({ ttl: 600, keyPrefix: "project" }), // Cache for 10 minutes
+	projectController.getProjectById.bind(projectController),
 );
 
 /**
@@ -213,7 +213,7 @@ projectRouter.get(
  *               $ref: '#/components/schemas/Error'
  */
 projectRouter.put(
-  "/:id",
-  invalidateCache("api:*projects*"),
-  projectController.updateProject.bind(projectController)
+	"/:id",
+	invalidateCache("api:*projects*"),
+	projectController.updateProject.bind(projectController),
 );

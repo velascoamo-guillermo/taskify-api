@@ -1,15 +1,15 @@
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 import logger from "../utils/logger.ts";
 
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
-  public readonly details?: any;
+  public readonly details?: unknown;
 
   constructor(
     message: string,
     statusCode: number = 500,
-    details?: any,
+    details?: unknown,
     isOperational: boolean = true
   ) {
     super(message);
@@ -54,9 +54,21 @@ export function errorHandler(
   }
 
   // Send response
-  res.status(error.statusCode).json({
+  const response: {
+    error: string;
+    details?: unknown;
+    stack?: string;
+  } = {
     error: error.message,
-    ...(error.details && { details: error.details }),
-    ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
-  });
+  };
+
+  if (error.details) {
+    response.details = error.details;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    response.stack = error.stack;
+  }
+
+  res.status(error.statusCode).json(response);
 }

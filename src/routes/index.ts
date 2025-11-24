@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authRouter } from "./auth.routes";
-import { projectRouter } from "./project.routes";
 import { fileRouter } from "./file.routes";
+import { projectRouter } from "./project.routes";
 
 export const router = Router();
 

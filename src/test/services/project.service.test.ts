@@ -1,6 +1,6 @@
-import { describe, expect, beforeAll, afterAll, beforeEach, it } from "vitest";
-import { ProjectService } from "../../services/project.service";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { UserRepository } from "../../repositories/user.repository";
+import { ProjectService } from "../../services/project.service";
 
 describe("ProjectService", () => {
   let projectService: ProjectService;
@@ -67,14 +67,13 @@ describe("ProjectService", () => {
       const invalidProjectData = {
         description: "Project without title",
         ownerId: testUserId,
-      } as any;
+      } as { title: string; description: string; ownerId: string };
 
       await expect(
         projectService.createProject(invalidProjectData)
       ).rejects.toThrow();
     });
   });
-
   describe("getProjectById", () => {
     it("should retrieve project by id", async () => {
       const projectData = {
