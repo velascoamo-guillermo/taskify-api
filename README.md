@@ -2,6 +2,7 @@
 
 > A modern, type-safe REST API for task management built with **Bun**, **TypeScript**, **Prisma**, and **Express**.
 
+[![CI](https://github.com/velascoamo-guillermo/taskify-api/actions/workflows/ci.yml/badge.svg)](https://github.com/velascoamo-guillermo/taskify-api/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org/)
 [![Bun](https://img.shields.io/badge/Bun-000000?style=for-the-badge&logo=bun&logoColor=white)](https://bun.sh/)
 [![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://prisma.io/)

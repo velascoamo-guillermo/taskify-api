@@ -5,6 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "bun --watch src/server.ts",
+    "lint": "bunx @biomejs/biome check src/",
+    "lint:fix": "bunx @biomejs/biome check --write src/",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
