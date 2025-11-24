@@ -4,6 +4,10 @@
 echo "🔍 Checking TypeScript types..."
 bunx tsc --noEmit
 
+# Linting
+echo "🧹 Running linter..."
+bun run lint
+
 # Run tests
 echo "🧪 Running tests..."
 bun test
