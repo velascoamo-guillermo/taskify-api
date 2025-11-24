@@ -74,15 +74,20 @@ jobs:
       - name: Run database migrations
         run: bunx prisma migrate deploy
         env:
-          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Run tests
         run: bun run test
         env:
-          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
-          REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-jwt-secret-key
-          JWT_REFRESH_SECRET: test-jwt-refresh-secret-key
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REDIS_URL: ${{ vars.REDIS_URL  }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET}}
+          JWT_ACCESS_EXPIRES: ${{ vars.JWT_ACCESS_EXPIRES || '15m' }}
+          JWT_REFRESH_EXPIRES: ${{ vars.JWT_REFRESH_EXPIRES || '7d' }}
+          CLOUDINARY_CLOUD_NAME: ${{ vars.CLOUDINARY_CLOUD_NAME || '' }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY || '' }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET || '' }}
           NODE_ENV: test
 
   build:
