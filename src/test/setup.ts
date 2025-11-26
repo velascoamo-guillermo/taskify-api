@@ -2,8 +2,10 @@ import { config } from "dotenv";
 import { afterAll, beforeAll, beforeEach } from "vitest";
 import { prisma } from "../../prisma/db.ts";
 
-// Load test environment variables
-config({ path: ".env.test" });
+// Load test environment variables only if not in CI (GitHub Actions provides env vars)
+if (!process.env.CI) {
+	config({ path: ".env.test" });
+}
 
 // Setup test database
 beforeAll(async () => {

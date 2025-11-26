@@ -32,6 +32,7 @@ jobs:
     needs: lint
     environment: staging
     env:
+      CI: true
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       REDIS_URL: ${{ vars.REDIS_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
