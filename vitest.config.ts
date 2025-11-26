@@ -7,6 +7,8 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     testTimeout: 10000,
     mockReset: true,
+    // Run tests sequentially to avoid database conflicts
+    fileParallelism: false,
     env: {
       // Cargar variables de entorno específicas para tests
       NODE_ENV: "test",
