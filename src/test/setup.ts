@@ -17,11 +17,6 @@ beforeAll(async () => {
 	await cleanDatabase();
 });
 
-// Clean up before each test to ensure isolation
-beforeEach(async () => {
-	await cleanDatabase();
-});
-
 // Cleanup after all tests
 afterAll(async () => {
 	await cleanDatabase();
