@@ -299,40 +299,192 @@ bun format
 
 ## 🚀 Deployment
 
-### Build for Production
+### Arquitectura del Deploy
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            GITHUB REPOSITORY                                │
+│                                                                             │
+│  push to main                                                               │
+│      │                                                                      │
+│      ▼                                                                      │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │                      GitHub Actions Pipeline                           │  │
+│  │                                                                        │  │
+│  │   ┌──────────┐      ┌──────────────┐      ┌────────────────────────┐  │  │
+│  │   │  1. CI    │─────▶│ 2. Build &   │─────▶│  3. Deploy to GKE     │  │  │
+│  │   │          │      │    Push       │      │                        │  │  │
+│  │   │  Lint    │      │              │      │  Auth (OIDC)           │  │  │
+│  │   │  Test    │      │  Docker img  │      │  Get GKE credentials   │  │  │
+│  │   │  Build   │      │   ──▶ GHCR   │      │  Create namespace      │  │  │
+│  │   │          │      │              │      │  Apply secrets          │  │  │
+│  │   └──────────┘      └──────────────┘      │  Kustomize deploy      │  │  │
+│  │                                            │  Wait for rollout      │  │  │
+│  │                                            └────────────────────────┘  │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          GOOGLE CLOUD PLATFORM                              │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │                 Google Kubernetes Engine (GKE)                         │  │
+│  │                 Namespace: taskify-staging                             │  │
+│  │                                                                       │  │
+│  │   ┌───────────┐      ┌──────────────────────────────────────────┐    │  │
+│  │   │  Ingress  │─────▶│         Service (ClusterIP)              │    │  │
+│  │   │  (GCE LB) │      │           port 80 ──▶ 3000              │    │  │
+│  │   └───────────┘      └──────────────┬───────────────────────────┘    │  │
+│  │                                      │                                │  │
+│  │                      ┌───────────────┼───────────────┐                │  │
+│  │                      ▼               ▼               ▼                │  │
+│  │                ┌──────────┐   ┌──────────┐   ┌──────────┐           │  │
+│  │                │  Pod 1   │   │  Pod 2   │   │  Pod N   │           │  │
+│  │                │ taskify  │   │ taskify  │   │ taskify  │           │  │
+│  │                │  -api    │   │  -api    │   │  -api    │           │  │
+│  │                └──────────┘   └──────────┘   └──────────┘           │  │
+│  │                      ▲                               ▲                │  │
+│  │                      │     HPA (autoscaling)         │                │  │
+│  │                      │     min: 1  ·  max: 2         │                │  │
+│  │                      │     CPU target: 70%           │                │  │
+│  │                      └───────────────────────────────┘                │  │
+│  │                                                                       │  │
+│  │   ┌──────────────┐   ┌──────────────────┐                           │  │
+│  │   │  ConfigMap    │   │    Secrets        │                           │  │
+│  │   │              │   │                  │                           │  │
+│  │   │  NODE_ENV    │   │  DATABASE_URL    │                           │  │
+│  │   │  PORT        │   │  JWT_SECRET      │                           │  │
+│  │   │  REDIS_URL   │   │  JWT_REFRESH_*   │                           │  │
+│  │   │  JWT_EXPIRES │   │  CLOUDINARY_*    │                           │  │
+│  │   └──────────────┘   └──────────────────┘                           │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │  Workload Identity Federation                                         │  │
+│  │                                                                       │  │
+│  │  GitHub OIDC token ──▶ Identity Pool ──▶ Service Account              │  │
+│  │  (sin claves estaticas, credenciales temporales por cada ejecucion)   │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Flujo de Deploy paso a paso
+
+#### 1. CI (Lint + Test + Build)
+
+Se ejecuta el workflow `workflow.yml` que valida el codigo:
+
+- **Lint** con Biome
+- **Tests** con Vitest (levanta Postgres y Redis como services)
+- **Build** con Bun
+
+#### 2. Build & Push de la imagen Docker
+
+```
+Dockerfile (multi-stage)
+├── Stage 1: deps      → Instala dependencias + genera Prisma Client
+├── Stage 2: build     → Compila la aplicacion con Bun
+└── Stage 3: runtime   → Imagen slim solo con lo necesario para produccion
+```
+
+La imagen se publica en **GitHub Container Registry** (`ghcr.io`) con tag del SHA del commit.
+
+#### 3. Deploy a GKE Staging
+
+1. **Autenticacion** via Workload Identity Federation (OIDC, sin service account keys)
+2. **Obtiene credenciales** del cluster GKE
+3. **Crea el namespace** `taskify-staging` si no existe
+4. **Inyecta los secrets** desde GitHub Secrets al cluster
+5. **Aplica manifests** con Kustomize (actualiza la imagen al nuevo tag)
+6. **Espera el rollout** con timeout de 5 minutos
+
+### Autenticacion con GCP (Workload Identity Federation)
+
+```
+GitHub Actions                     Google Cloud
+┌───────────────┐                 ┌────────────────────────────┐
+│               │  1. Token OIDC  │                            │
+│   Workflow    │────────────────▶│  Workload Identity Pool    │
+│  (push main)  │                 │  (github-provider)         │
+│               │  2. Credencial  │            │               │
+│               │◀────────────────│            ▼               │
+│               │    temporal     │    Service Account          │
+│               │                 │    (rol: GKE Developer)    │
+└───────────────┘                 └────────────────────────────┘
+```
+
+- **Sin claves estaticas:** GitHub genera un token OIDC temporal en cada ejecucion
+- **GCP lo verifica** contra el emisor `https://token.actions.githubusercontent.com`
+- **Otorga credenciales temporales** para operar con GKE
+
+### Estructura de Kubernetes
+
+```
+k8s/
+├── base/                          # Configuracion base
+│   ├── kustomization.yml          # Orquesta todos los recursos
+│   ├── namespace.yml              # Namespace del proyecto
+│   ├── configmap.yml              # Variables de entorno no sensibles
+│   ├── secret.yml                 # Plantilla de secrets (valores reales via GitHub)
+│   ├── deployment.yml             # Deployment con init container para migraciones
+│   ├── service.yml                # ClusterIP service (80 → 3000)
+│   ├── ingress.yml                # Ingress con GCE Load Balancer
+│   └── hpa.yml                    # Autoscaling horizontal
+│
+└── overlays/
+    └── staging/                   # Override para staging
+        ├── kustomization.yml      # Patches: 1 replica, HPA 1-2
+        └── configmap-patch.yml    # NODE_ENV=staging
+```
+
+- **Init Container:** Ejecuta `prisma migrate deploy` antes de iniciar los pods
+- **Readiness probe:** `GET /health` cada 10s (no recibe trafico hasta responder)
+- **Liveness probe:** `GET /health` cada 20s (reinicia el pod si deja de responder)
+
+### Setup de Infraestructura
+
+#### Prerrequisitos
+
+- Cuenta de Google Cloud con proyecto activo
+- Cluster GKE creado
+- [GitHub CLI](https://cli.github.com/) instalado (`brew install gh`)
+
+#### 1. Configurar Workload Identity Federation en GCP
+
+1. Crear un **Workload Identity Pool** (ej: `github-provider`)
+2. Agregar un **proveedor OIDC** con emisor: `https://token.actions.githubusercontent.com`
+3. Crear una **Service Account** con rol `Kubernetes Engine Developer`
+4. Vincular el pool a la Service Account con rol `Workload Identity User`
+
+#### 2. Configurar secrets en GitHub
 
 ```bash
-# Build the application
-bun build
-
-# Start production server
-bun start
+gh auth login
+./scripts/setup-gh-secrets.sh
 ```
 
-### Docker Deployment
+| Secret | Descripcion |
+|--------|-------------|
+| `GCP_PROJECT_ID` | ID del proyecto en GCP |
+| `GCP_SERVICE_ACCOUNT` | Email de la service account |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | Resource name del provider OIDC |
+| `GKE_CLUSTER` | Nombre del cluster GKE |
+| `GKE_ZONE` | Zona del cluster |
+| `DATABASE_URL` | Connection string de PostgreSQL |
+| `JWT_SECRET` | Secret para access tokens |
+| `JWT_REFRESH_SECRET` | Secret para refresh tokens |
+| `CLOUDINARY_API_KEY` | API key de Cloudinary |
+| `CLOUDINARY_API_SECRET` | API secret de Cloudinary |
 
-```dockerfile
-FROM oven/bun:1
+#### 3. Deploy
 
-WORKDIR /app
-COPY package.json bun.lockb ./
-RUN bun install --frozen-lockfile
+Push a `main` dispara automaticamente el pipeline completo:
 
-COPY . .
-RUN bunx prisma generate
-RUN bun build
-
-EXPOSE 3000
-CMD ["bun", "start"]
+```bash
+git push origin main
+gh run watch  # monitorear en tiempo real
 ```
-
-### Environment Variables for Production
-
-Ensure these are set in your production environment:
-
-- `NODE_ENV=production`
-- `DATABASE_URL` (production database)
-- Strong, unique values for `JWT_SECRET` and `JWT_REFRESH_SECRET`
 
 ## 🤝 Contributing
 

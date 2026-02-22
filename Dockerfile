@@ -5,7 +5,7 @@ COPY package.json bun.lock ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 RUN bun install --frozen-lockfile
-RUN bunx prisma generate
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" bunx prisma generate
 
 # Stage 2: Build
 FROM oven/bun:1 AS build
