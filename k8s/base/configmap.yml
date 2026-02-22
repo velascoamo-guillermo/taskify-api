@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: taskify-config
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  REDIS_URL: "redis://redis-service:6379"
+  JWT_ACCESS_EXPIRES: "15m"
+  JWT_REFRESH_EXPIRES: "7d"
+  CLOUDINARY_CLOUD_NAME: ""

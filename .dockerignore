@@ -1,0 +1,16 @@
+node_modules
+dist
+generated
+.git
+.github
+.husky
+.vscode
+.env
+.env.*
+!.env.example
+__tests__
+__endpoints__
+*.md
+*.log
+coverage
+.DS_Store
