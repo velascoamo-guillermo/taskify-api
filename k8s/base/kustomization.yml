@@ -5,11 +5,14 @@ resources:
   - namespace.yml
   - configmap.yml
   - secret.yml
+  - postgres.yml
+  - redis.yml
   - deployment.yml
   - service.yml
   - ingress.yml
   - hpa.yml
 
-commonLabels:
-  app.kubernetes.io/name: taskify-api
-  app.kubernetes.io/managed-by: kustomize
+labels:
+  - pairs:
+      app.kubernetes.io/managed-by: kustomize
+    includeSelectors: false
