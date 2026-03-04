@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: taskify-config
 data:
-  NODE_ENV: "staging"
+  NODE_ENV: "production"
