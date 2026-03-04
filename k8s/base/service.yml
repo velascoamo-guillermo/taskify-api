@@ -5,7 +5,7 @@ metadata:
   labels:
     app: taskify-api
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: taskify-api
   ports:
