@@ -20,6 +20,9 @@
 - 🔒 **Security First** - Helmet, CORS, Rate limiting
 - 🎯 **Clean Architecture** - Repository pattern with service layer
 - 📚 **Auto Documentation** - OpenAPI/Swagger integration
+- 🐳 **Containerized** - Multi-stage Docker builds with Bun
+- ☸️ **Kubernetes Ready** - Full GKE deployment with Kustomize
+- 🔄 **CI/CD Pipeline** - GitHub Actions with automated deploy to GKE
 
 ## 🏗️ Architecture
 
@@ -333,11 +336,11 @@ bun format
 │  │                 Namespace: taskify-staging                             │  │
 │  │                                                                       │  │
 │  │   ┌───────────┐      ┌──────────────────────────────────────────┐    │  │
-│  │   │  Ingress  │─────▶│         Service (ClusterIP)              │    │  │
+│  │   │  Ingress  │─────▶│         Service (NodePort)               │    │  │
 │  │   │  (GCE LB) │      │           port 80 ──▶ 3000              │    │  │
-│  │   └───────────┘      └──────────────┬───────────────────────────┘    │  │
-│  │                                      │                                │  │
-│  │                      ┌───────────────┼───────────────┐                │  │
+│  │   │  Static   │      └──────────────┬───────────────────────────┘    │  │
+│  │   │  IP       │                     │                                │  │
+│  │   └───────────┘     ┌───────────────┼───────────────┐                │  │
 │  │                      ▼               ▼               ▼                │  │
 │  │                ┌──────────┐   ┌──────────┐   ┌──────────┐           │  │
 │  │                │  Pod 1   │   │  Pod 2   │   │  Pod N   │           │  │
@@ -349,15 +352,23 @@ bun format
 │  │                      │     min: 1  ·  max: 2         │                │  │
 │  │                      │     CPU target: 70%           │                │  │
 │  │                      └───────────────────────────────┘                │  │
+│  │                          │                     │                       │  │
+│  │                          ▼                     ▼                       │  │
+│  │   ┌──────────────────────────┐  ┌──────────────────────────┐         │  │
+│  │   │  PostgreSQL (in-cluster) │  │    Redis (in-cluster)    │         │  │
+│  │   │  postgres-service:5432   │  │    redis-service:6379    │         │  │
+│  │   │  PVC: 1Gi                │  │    emptyDir              │         │  │
+│  │   └──────────────────────────┘  └──────────────────────────┘         │  │
 │  │                                                                       │  │
 │  │   ┌──────────────┐   ┌──────────────────┐                           │  │
 │  │   │  ConfigMap    │   │    Secrets        │                           │  │
-│  │   │              │   │                  │                           │  │
-│  │   │  NODE_ENV    │   │  DATABASE_URL    │                           │  │
-│  │   │  PORT        │   │  JWT_SECRET      │                           │  │
-│  │   │  REDIS_URL   │   │  JWT_REFRESH_*   │                           │  │
-│  │   │  JWT_EXPIRES │   │  CLOUDINARY_*    │                           │  │
-│  │   └──────────────┘   └──────────────────┘                           │  │
+│  │   │              │   │  (via pipeline)   │                           │  │
+│  │   │  NODE_ENV    │   │                  │                           │  │
+│  │   │  PORT        │   │  DATABASE_URL    │                           │  │
+│  │   │  REDIS_URL   │   │  JWT_SECRET      │                           │  │
+│  │   │  JWT_EXPIRES │   │  JWT_REFRESH_*   │                           │  │
+│  │   └──────────────┘   │  CLOUDINARY_*    │                           │  │
+│  │                      └──────────────────┘                           │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
 │                                                                             │
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
@@ -395,9 +406,10 @@ La imagen se publica en **GitHub Container Registry** (`ghcr.io`) con tag del SH
 1. **Autenticacion** via Workload Identity Federation (OIDC, sin service account keys)
 2. **Obtiene credenciales** del cluster GKE
 3. **Crea el namespace** `taskify-staging` si no existe
-4. **Inyecta los secrets** desde GitHub Secrets al cluster
+4. **Inyecta los secrets** desde GitHub Secrets al cluster (DATABASE_URL apunta al PostgreSQL in-cluster)
 5. **Aplica manifests** con Kustomize (actualiza la imagen al nuevo tag)
-6. **Espera el rollout** con timeout de 5 minutos
+6. **Espera PostgreSQL y Redis** antes de desplegar la app
+7. **Espera el rollout** de taskify-api con timeout de 5 minutos
 
 ### Autenticacion con GCP (Workload Identity Federation)
 
@@ -426,21 +438,25 @@ k8s/
 │   ├── kustomization.yml          # Orquesta todos los recursos
 │   ├── namespace.yml              # Namespace del proyecto
 │   ├── configmap.yml              # Variables de entorno no sensibles
-│   ├── secret.yml                 # Plantilla de secrets (valores reales via GitHub)
-│   ├── deployment.yml             # Deployment con init container para migraciones
-│   ├── service.yml                # ClusterIP service (80 → 3000)
-│   ├── ingress.yml                # Ingress con GCE Load Balancer
+│   ├── secret.yml                 # Plantilla de secrets (valores reales via pipeline)
+│   ├── postgres.yml               # PostgreSQL: Deployment + Service + PVC + Secret
+│   ├── redis.yml                  # Redis: Deployment + Service
+│   ├── deployment.yml             # App deployment con init container para migraciones
+│   ├── service.yml                # NodePort service (80 → 3000)
+│   ├── ingress.yml                # Ingress con GCE Load Balancer + static IP
 │   └── hpa.yml                    # Autoscaling horizontal
 │
 └── overlays/
     └── staging/                   # Override para staging
         ├── kustomization.yml      # Patches: 1 replica, HPA 1-2
-        └── configmap-patch.yml    # NODE_ENV=staging
+        └── configmap-patch.yml    # NODE_ENV=production
 ```
 
+- **In-cluster databases:** PostgreSQL (PVC 1Gi) y Redis desplegados como pods dentro del cluster
 - **Init Container:** Ejecuta `prisma migrate deploy` antes de iniciar los pods
 - **Readiness probe:** `GET /health` cada 10s (no recibe trafico hasta responder)
 - **Liveness probe:** `GET /health` cada 20s (reinicia el pod si deja de responder)
+- **Secrets management:** Los secrets se inyectan via el pipeline de deploy (no versionados en git)
 
 ### Setup de Infraestructura
 
@@ -471,11 +487,12 @@ gh auth login
 | `GCP_WORKLOAD_IDENTITY_PROVIDER` | Resource name del provider OIDC |
 | `GKE_CLUSTER` | Nombre del cluster GKE |
 | `GKE_ZONE` | Zona del cluster |
-| `DATABASE_URL` | Connection string de PostgreSQL |
-| `JWT_SECRET` | Secret para access tokens |
-| `JWT_REFRESH_SECRET` | Secret para refresh tokens |
+| `JWT_SECRET` | Secret para access tokens (min 32 chars) |
+| `JWT_REFRESH_SECRET` | Secret para refresh tokens (min 32 chars) |
 | `CLOUDINARY_API_KEY` | API key de Cloudinary |
 | `CLOUDINARY_API_SECRET` | API secret de Cloudinary |
+
+> **Nota:** `DATABASE_URL` no se configura como GitHub Secret. Apunta automaticamente al PostgreSQL in-cluster (`postgres-service:5432`).
 
 #### 3. Deploy
 
@@ -485,6 +502,43 @@ Push a `main` dispara automaticamente el pipeline completo:
 git push origin main
 gh run watch  # monitorear en tiempo real
 ```
+
+### Live API
+
+Una vez desplegado, obtener la IP del ingress:
+
+```bash
+kubectl get ingress -n taskify-staging
+```
+
+```bash
+# Health check
+curl http://<INGRESS_IP>/health
+
+# Register
+curl -X POST http://<INGRESS_IP>/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "password123"}'
+
+# Login
+curl -X POST http://<INGRESS_IP>/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "password123"}'
+```
+
+### Cost Management
+
+```bash
+# Apagar el cluster (nodos a 0, deja de cobrar)
+gcloud container clusters resize <CLUSTER_NAME> \
+  --zone <ZONE> --num-nodes 0 --project <PROJECT_ID>
+
+# Encender el cluster
+gcloud container clusters resize <CLUSTER_NAME> \
+  --zone <ZONE> --num-nodes 1 --project <PROJECT_ID>
+```
+
+Se recomienda configurar **Budget Alerts** en Google Cloud Console (Billing → Budgets & alerts) para recibir notificaciones al alcanzar umbrales de gasto.
 
 ## 🤝 Contributing
 
