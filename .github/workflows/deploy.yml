@@ -83,7 +83,7 @@ jobs:
         run: |
           kubectl create secret generic taskify-secrets \
             --namespace=taskify-staging \
-            --from-literal=DATABASE_URL="postgresql://taskify_user:taskify_password@postgres-service:5432/taskify_db" \
+            --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
             --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             --from-literal=JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
             --from-literal=CLOUDINARY_API_KEY="${{ secrets.CLOUDINARY_API_KEY }}" \
