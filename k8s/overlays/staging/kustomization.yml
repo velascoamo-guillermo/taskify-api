@@ -25,3 +25,10 @@ patches:
       - op: replace
         path: /spec/replicas
         value: 1
+  - target:
+      kind: Service
+      name: taskify-api
+    patch: |
+      - op: replace
+        path: /spec/type
+        value: ClusterIP
